@@ -3,13 +3,12 @@ SELECT * FROM users
 WHERE id = $1;
 
 
--- name: CreateUser :one
+-- name: CreateUser :execresult
 INSERT INTO users (
   name, email, age
 ) VALUES (
   $1, $2, $3
-)
-RETURNING *;
+);
 
 -- name: UpdateUserAges :exec
 UPDATE users SET age = $2
