@@ -14,21 +14,27 @@ const createUser = `-- name: CreateUser :execresult
 INSERT INTO users (
   name, email, age
 ) VALUES (
-  $1, $2, $3
+  ?, ?, ?
 )
 `
 
-func (q *Queries) CreateUser(ctx context.Context) (sql.Result, error) {
-	return q.db.ExecContext(ctx, createUser)
+type CreateUserParams struct {
+	Name  string
+	Email string
+	Age   int32
+}
+
+func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (sql.Result, error) {
+	return q.db.ExecContext(ctx, createUser, arg.Name, arg.Email, arg.Age)
 }
 
 const getUser = `-- name: GetUser :one
 SELECT id, name, email, age FROM users
-WHERE id = $1
+WHERE id = ?
 `
 
-func (q *Queries) GetUser(ctx context.Context) (User, error) {
-	row := q.db.QueryRowContext(ctx, getUser)
+func (q *Queries) GetUser(ctx context.Context, id uint64) (User, error) {
+	row := q.db.QueryRowContext(ctx, getUser, id)
 	var i User
 	err := row.Scan(
 		&i.ID,
@@ -40,11 +46,16 @@ func (q *Queries) GetUser(ctx context.Context) (User, error) {
 }
 
 const updateUserAges = `-- name: UpdateUserAges :exec
-UPDATE users SET age = $2
-WHERE id = $1
+UPDATE users SET age = ?
+WHERE id = ?
 `
 
-func (q *Queries) UpdateUserAges(ctx context.Context) error {
-	_, err := q.db.ExecContext(ctx, updateUserAges)
+type UpdateUserAgesParams struct {
+	Age int32
+	ID  uint64
+}
+
+func (q *Queries) UpdateUserAges(ctx context.Context, arg UpdateUserAgesParams) error {
+	_, err := q.db.ExecContext(ctx, updateUserAges, arg.Age, arg.ID)
 	return err
 }
